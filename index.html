@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cuadre de tanda</title>
+<meta name="theme-color" content="#eceee7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141611" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cuadre">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Una columna tipo ticket de balanza: datos de la tanda, resumen, aposentos, copiar */
+:root{
+  --bg:#eceee7;--surface:#fbfbf8;--ink:#1d2119;--muted:#5f6657;--line:#d3d7cb;
+  --accent:#7b4a1f;--accent-ink:#fff8f0;--good:#2e7339;--good-bg:#e0eedf;--bad:#b0461a;--bad-bg:#f6e3d8;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:"Barlow Semi Condensed","Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141611;--surface:#1d2019;--ink:#e8eae1;--muted:#9da493;--line:#343a2d;
+  --accent:#d49a5e;--accent-ink:#1b120a;--good:#79c585;--good-bg:#1f3322;--bad:#f08d55;--bad-bg:#3a2216;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141611;--surface:#1d2019;--ink:#e8eae1;--muted:#9da493;--line:#343a2d;
+  --accent:#d49a5e;--accent-ink:#1b120a;--good:#79c585;--good-bg:#1f3322;--bad:#f08d55;--bad-bg:#3a2216;color-scheme:dark}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4}
+.wrap{max-width:34rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 96px;display:grid;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-family:var(--f-num);font-weight:700;font-size:1.5rem;margin:0;text-wrap:balance}
+.hd-r{display:flex;align-items:center;gap:8px}
+.ej{font-family:var(--f-num);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn-g{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.9rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.lbl{font-family:var(--f-num);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input,textarea{font:inherit;font-family:var(--f-num);font-weight:600;font-size:1.05rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0;font-variant-numeric:tabular-nums}
+input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.tanda{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:grid;gap:4px;min-width:0}
+.f.full{grid-column:1/-1}
+.unit{position:relative;display:block}
+.unit i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font-family:var(--f-num);font-weight:600;color:var(--muted)}
+#bal{font-size:2rem;font-weight:700;padding:8px 52px 8px 12px;color:var(--accent)}
+.res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.res>div{background:var(--surface);padding:10px 12px;display:grid;gap:2px;align-content:start;min-width:0}
+.res b{font-family:var(--f-num);font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
+.res small{font-family:var(--f-num);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.res .est{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+b.al{color:var(--bad)}
+.pill{font-family:var(--f-num);font-weight:600;font-size:.85rem;padding:3px 10px;border-radius:999px;background:var(--good-bg);color:var(--good)}
+.pill.al{background:var(--bad-bg);color:var(--bad)}
+.pill.nd{background:var(--bg);color:var(--muted)}
+.lst-h{display:flex;justify-content:space-between;padding-bottom:10px}
+.cab,.ap{display:grid;grid-template-columns:3.3rem 3.3rem minmax(0,1fr) minmax(0,1.1fr) 2.2rem;gap:8px;align-items:center}
+.cab{padding-bottom:6px}
+.cab span{text-align:center}
+.cab span:nth-child(3),.cab span:nth-child(4){text-align:right}
+.ap{padding-block:8px;border-top:1px solid var(--line)}
+.ap input{text-align:center;padding:8px 4px}
+.ap input[data-k=e]{text-align:right;padding-right:8px}
+.pon{text-align:right;display:grid;line-height:1.15;min-width:0}
+.pon b{font-family:var(--f-num);font-size:1.4rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.pon small{font-family:var(--f-num);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pon small.al{color:var(--bad);font-weight:600}
+.del{width:2.2rem;height:2.2rem;border:none;background:none;color:var(--muted);font-size:1.4rem;line-height:1;border-radius:8px}
+.add{width:100%;margin-top:8px;padding:11px;border:1.5px dashed var(--line);border-radius:10px;background:none;color:var(--accent);font-family:var(--f-num);font-weight:600;font-size:1rem}
+.acc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:13px;border-radius:10px;border:1px solid var(--accent);font-family:var(--f-num);font-weight:600;font-size:1.02rem}
+.btn.p{background:var(--accent);color:var(--accent-ink)}
+.btn.s{background:var(--surface);color:var(--accent)}
+#copia{min-height:9rem;font-weight:500;font-size:.95rem;resize:vertical}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;display:flex;gap:14px;align-items:center;font-size:.95rem;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.toast button{background:none;border:none;color:var(--bg);font-weight:600;text-decoration:underline;padding:0}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cuadre de tanda</h1>
+    <div class="hd-r"><span class="ej" id="ej" hidden>Ejemplo</span><button class="btn-g" id="limpiar" type="button">Limpiar</button></div>
+  </header>
+
+  <section class="card tanda">
+    <label class="f full"><span class="lbl">Finca</span><input id="finca" list="fincas" autocomplete="off"></label>
+    <datalist id="fincas"></datalist>
+    <label class="f"><span class="lbl">Lote</span><input id="lote" inputmode="numeric" autocomplete="off"></label>
+    <label class="f"><span class="lbl">Corte</span><input id="corte" inputmode="numeric" autocomplete="off"></label>
+    <label class="f full"><span class="lbl">Balanza</span><span class="unit"><input id="bal" type="number" inputmode="decimal" min="0" step="any"><i>lbs</i></span></label>
+  </section>
+
+  <section class="res">
+    <div><span class="lbl">Estimado</span><b id="r-est">—</b><small id="r-n"></small></div>
+    <div><span class="lbl">Balanza</span><b id="r-bal">—</b><small>lbs</small></div>
+    <div><span class="lbl">Diferencia</span><b id="r-dif">—</b><small id="r-pct"></small></div>
+    <div class="est"><span class="pill nd" id="pill">Faltan datos</span><small id="r-sum"></small></div>
+  </section>
+
+  <section class="card">
+    <div class="lst-h"><span class="lbl">Aposentos</span><span class="lbl" id="nap"></span></div>
+    <div class="cab lbl"><span>Casona</span><span>Ap.</span><span>Estimado</span><span>Poner</span><span></span></div>
+    <div id="lista"></div>
+    <button class="add" id="add" type="button">+ Aposento</button>
+  </section>
+
+  <div class="acc">
+    <button class="btn p" id="ctab" type="button">Copiar tabla</button>
+    <button class="btn s" id="cnota" type="button">Copiar nota</button>
+  </div>
+  <textarea id="copia" readonly hidden></textarea>
+</div>
+<div class="toast" id="toast" hidden><span id="tmsg"></span><button id="tbtn" type="button" hidden>Deshacer</button></div>
+
+<script>
+var K='cuadre_tanda_v1',LIM=10,S,prev=null,tmr;
+var $=function(id){return document.getElementById(id)},L=$('lista');
+function ejemplo(){return{ej:1,finca:'',lote:'6',corte:'5',bal:'1700',filas:[{c:'9',a:'9',e:'448'},{c:'9',a:'10',e:'448'},{c:'9',a:'11',e:'448'},{c:'9',a:'12',e:'448'}]}}
+function cargar(){try{var x=JSON.parse(localStorage.getItem(K));if(x&&x.filas&&x.filas.length)return x}catch(e){}return ejemplo()}
+function guardar(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function n(v){v=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(v)&&v>0?v:0}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function fmt(v,d){var a=Math.abs(v),s=a.toFixed(d||0).split('.'),t=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');if(s[1]&&+s[1])t+=','+s[1];return(v<0&&+s.join('.')?'−':'')+t}
+function fmtS(v){return(v>=0.05?'+':'')+fmt(v,1)}
+function fmtP(p){return(p>=0.05?'+':'')+fmt(p,1)+'%'}
+function calc(){
+  var T=n(S.bal),idx=[],se=0,out=S.filas.map(function(){return null});
+  S.filas.forEach(function(f,i){var e=n(f.e);if(e){idx.push(i);se+=e}});
+  if(T&&se){var acc=0;idx.forEach(function(i,k){var v;if(k<idx.length-1){v=Math.round(n(S.filas[i].e)*T/se);acc+=v}else v=Math.round((T-acc)*10)/10;out[i]=v})}
+  return{T:T,se:se,out:out,k:idx.length,pct:se?(T-se)/se*100:0};
+}
+function render(){
+  var h='';
+  S.filas.forEach(function(f,i){
+    h+='<div class="ap"><input id="c'+i+'" data-i="'+i+'" data-k="c" inputmode="numeric" autocomplete="off" aria-label="Casona" value="'+esc(f.c)+'">'
+      +'<input id="a'+i+'" data-i="'+i+'" data-k="a" inputmode="numeric" autocomplete="off" aria-label="Aposento" value="'+esc(f.a)+'">'
+      +'<input id="e'+i+'" data-i="'+i+'" data-k="e" type="number" inputmode="decimal" min="0" step="any" aria-label="Estimado" value="'+esc(f.e)+'">'
+      +'<div class="pon"><b>—</b><small></small></div><button type="button" class="del" data-del="'+i+'" aria-label="Quitar">×</button></div>';
+  });
+  L.innerHTML=h;
+  ['finca','lote','corte','bal'].forEach(function(k){$(k).value=S[k]||''});
+  upd();
+}
+function upd(){
+  var r=calc(),rows=L.children,al=0,sum=0;
+  S.filas.forEach(function(f,i){
+    if(!rows[i])return;
+    var b=rows[i].querySelector('b'),s=rows[i].querySelector('small'),v=r.out[i],e=n(f.e);
+    if(v==null){b.textContent='—';s.textContent='';s.className='';return}
+    var d=v-e,p=d/e*100,x=Math.abs(p)>LIM;sum+=v;if(x)al++;
+    b.textContent=fmt(v,1);s.textContent=fmtS(d)+' · '+fmtP(p);s.className=x?'al':'';
+  });
+  var ok=r.T&&r.se,pl=$('pill');
+  $('r-est').textContent=r.se?fmt(r.se,1):'—';
+  $('r-n').textContent=r.k?r.k+(r.k==1?' aposento':' aposentos'):'';
+  $('r-bal').textContent=r.T?fmt(r.T,1):'—';
+  $('r-dif').textContent=ok?fmtS(r.T-r.se):'—';
+  $('r-dif').className=ok&&Math.abs(r.pct)>LIM?'al':'';
+  $('r-pct').textContent=ok?fmtP(r.pct):'';
+  $('r-sum').textContent=ok?'Suma '+fmt(sum,1)+' lbs':'';
+  pl.className='pill'+(!ok?' nd':al?' al':'');
+  pl.textContent=!ok?'Faltan datos':al?al+(al==1?' alerta':' alertas'):'Sin alertas';
+  $('nap').textContent=S.filas.length;
+  $('ej').hidden=!S.ej;
+}
+function cambio(){S.ej=0;guardar();upd()}
+function titulo(){var p=[];if((S.finca||'').trim())p.push(S.finca.trim());if(S.lote)p.push('L'+S.lote);if(S.corte)p.push('C'+S.corte);return'Tanda'+(p.length?' '+p.join(' '):'')}
+function aposTxt(){
+  var g=[],m={};
+  S.filas.forEach(function(f){if(!n(f.e))return;var c=f.c||'?';if(!m[c]){m[c]=[];g.push(c)}m[c].push(f.a||'?')});
+  return g.map(function(c){return'Casona '+c+' Ap.'+m[c].join(', ')}).join('; ');
+}
+function txtTabla(r){
+  var l=[titulo(),'Balanza '+fmt(r.T,1)+' lbs · Estimado '+fmt(r.se,1)+' lbs · '+fmtS(r.T-r.se)+' ('+fmtP(r.pct)+')',''];
+  S.filas.forEach(function(f,i){if(r.out[i]!=null)l.push('Casona '+(f.c||'?')+' Ap.'+(f.a||'?')+': '+fmt(r.out[i],1)+' (est. '+fmt(n(f.e),1)+')')});
+  return l.join('\n');
+}
+function txtNota(r){return titulo()+': '+fmt(r.T,1)+' lbs en balanza para '+r.k+(r.k==1?' aposento':' aposentos')+' ('+aposTxt()+') con '+fmt(r.se,1)+' lbs estimadas, '+fmtP(r.pct)+'. Repartido según estimado.'}
+function aviso(t,deshacer){
+  $('tmsg').textContent=t;$('tbtn').hidden=!deshacer;$('toast').hidden=false;
+  clearTimeout(tmr);tmr=setTimeout(function(){$('toast').hidden=true;prev=null},deshacer?6000:2200);
+}
+function manual(t){var x=$('copia');x.hidden=false;x.value=t;x.focus();x.select();aviso('Texto listo para copiar')}
+function copiar(f){
+  var r=calc();if(!r.T||!r.se){aviso('Faltan datos');return}
+  var t=f(r);$('copia').hidden=true;
+  try{navigator.clipboard.writeText(t).then(function(){aviso('Copiado')},function(){manual(t)})}catch(e){manual(t)}
+}
+function respaldo(){prev=JSON.stringify(S)}
+function agregar(){
+  var u=S.filas[S.filas.length-1]||{};
+  S.filas.push({c:u.c||'',a:n(u.a)?String(Math.round(n(u.a))+1):'',e:u.e||''});
+  S.ej=0;guardar();render();var e=$('e'+(S.filas.length-1));e.focus();e.select();
+}
+['finca','lote','corte','bal'].forEach(function(k){$(k).addEventListener('input',function(){S[k]=this.value;cambio()})});
+L.addEventListener('input',function(ev){var t=ev.target;if(t.dataset.k){S.filas[+t.dataset.i][t.dataset.k]=t.value;cambio()}});
+L.addEventListener('keydown',function(ev){
+  var t=ev.target;if(ev.key!=='Enter'||t.dataset.k!=='e')return;ev.preventDefault();
+  var nx=$('e'+(+t.dataset.i+1));if(nx){nx.focus();nx.select()}else agregar();
+});
+L.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-del]');if(!b)return;respaldo();
+  if(S.filas.length>1)S.filas.splice(+b.dataset.del,1);else S.filas=[{c:'',a:'',e:''}];
+  S.ej=0;guardar();render();aviso('Aposento quitado',1);
+});
+$('add').addEventListener('click',agregar);
+$('limpiar').addEventListener('click',function(){
+  respaldo();S={ej:0,finca:S.finca||'',lote:'',corte:'',bal:'',filas:[{c:'',a:'',e:''}]};
+  guardar();render();$('copia').hidden=true;aviso('Limpio',1);
+});
+$('tbtn').addEventListener('click',function(){if(!prev)return;S=JSON.parse(prev);prev=null;guardar();render();$('toast').hidden=true});
+$('ctab').addEventListener('click',function(){copiar(txtTabla)});
+$('cnota').addEventListener('click',function(){copiar(txtNota)});
+S=cargar();render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+</script>
+
+</body>
+</html>
